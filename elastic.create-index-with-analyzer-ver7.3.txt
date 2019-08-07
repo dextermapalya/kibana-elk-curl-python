@@ -1,0 +1,36 @@
+curl -u elastic:4gKmFvoWMMcOPgdhj9V4 -X PUT "localhost:9200/analytics?include_type_name=true" -H 'Content-Type: application/json' -d '
+{
+  "settings": {
+    "index": {
+       "number_of_shards": 2,
+       "number_of_replicas": 1
+    },
+    "analysis": {
+      "analyzer": {
+        "analyzer-name": {
+          "type": "custom",
+          "tokenizer": "keyword",
+          "filter": "lowercase"
+        }
+      }
+    }
+  },
+  "mappings": {
+        "user_events": {
+        "properties": {
+             "type": {"type": "keyword"},            
+            "event": { "type": "keyword" }, 
+            "action": { "type": "text" },
+            "genre": { "type": "keyword" },
+            "user": { "type": "keyword" },
+            "media_duration": { "type": "long" },
+            "watched_duration": { "type": "long" },
+            "created_at":  {
+                "type":   "date", 
+                "format": "strict_date_optional_time||epoch_millis"
+            }
+         }
+       }
+     }
+}'
+

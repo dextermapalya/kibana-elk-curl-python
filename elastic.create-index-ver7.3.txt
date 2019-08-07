@@ -1,0 +1,35 @@
+curl -u elastic:4gKmFvoWMMcOPgdhj9V4 -X PUT 'localhost:9200/analytics_test?pretty&include_type_name=true' -H 'Content-Type: application/json' -d '{
+  "settings": {
+       "number_of_shards": 2,
+       "number_of_replicas": 1
+  },
+  "mappings": {
+    "user_events": {
+      "properties": {
+        "user_id": {
+          "type": "long"
+        },
+        "genre": {
+          "type": "long"
+        },
+        "content-type": {
+          "type": "text"
+        },
+        "content-title": {
+          "type": "text"
+        },
+        "video_duration": {
+          "type": "long"
+        },
+        "watched_duration": {
+          "type": "long"
+        },
+        "created_at":  {
+                "type":   "date", 
+                "format": "strict_date_optional_time||epoch_millis"
+        }
+
+      }
+    }
+  }
+}'

@@ -1,0 +1,42 @@
+curl -H "Content-Type: application/json" -X POST http://192.168.60.57:9200/_search -d '
+{
+   "query":{  
+      "bool":{  
+         "must":[  
+            {  
+               "query_string":{  
+                  "query":"syslog_program:touchpad-indicator-autostart.desktop",
+                  "analyze_wildcard":true,
+                  "default_field":"*"
+               }
+            },
+            {  
+               "match_phrase":{  
+                  "syslog_program.keyword":{  
+                     "query":"touchpad-indicator-autostart.desktop"
+                  }
+               }
+            },
+            {  
+               "range":{  
+                  "@timestamp":{  
+                     "gte":1564684200000,
+                     "lte":1564754404000,
+                     "format":"epoch_millis"
+                  }
+               }
+            }
+         ],
+         "filter":[  
+
+         ],
+         "should":[  
+
+         ],
+         "must_not":[  
+
+         ]
+      }
+   }
+}'
+

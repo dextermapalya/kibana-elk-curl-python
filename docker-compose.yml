@@ -1,0 +1,111 @@
+version: '3'
+
+services:
+
+  logstash:
+    build:
+      context: logstash/
+      args:
+        ELK_VERSION: ${ELK_VERSION} #pass it to Dockerfile
+    volumes:
+      - ./logstash/config/logstash.yml:/usr/share/logstash/config/logstash.yml:ro
+      - ./logstash/pipeline:/usr/share/logstash/pipeline:ro
+      - /home/apalya/workspace/python/dashboard_api/var/logs/nginx:/usr/share/logstash/nginx:ro
+      - /var/log/:/var/log/:ro
+    ports:
+      - "5000:5000"
+      - "9600:9600"
+      - 5044:5044
+      - 514:5000                                                                                                                                    
+      - 514:5000/udp      
+    environment:
+      LS_JAVA_OPTS: "-Xmx512m -Xms512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      #LOG_LEVEL: error
+    networks:
+      - elastic-net
+    depends_on:
+      - elasticsearch
+    restart: unless-stopped
+    container_name: logstash  
+
+  elasticsearch:
+    build:
+      context: elasticsearch/
+      args:
+        ELK_VERSION: $ELK_VERSION #pass this variable to dockerfile
+    volumes:
+      - ./elasticsearch/config/elasticsearch.yml:/usr/share/elasticsearch/config/elasticsearch.yml:ro
+      #- ./elasticsearch/storage:/usr/share/elasticsearch/data      #persist data locally
+      - elastic-data:/usr/share/elasticsearch/data #persist data locally
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      #ES_JAVA_OPTS: "-Xmx256m -Xms256m"
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m" # minimum and maximum Java heap size, recommend setting both to 50% of system RAM
+      - ELASTIC_PASSWORD=4gKmFvoWMMcOPgdhj9V4
+      - KIBANA_PASSWORD=LAHSYNwP0isEFvBmP2kF
+      - bootstrap.memory_lock=true # along with the memlock settings below, disables swapping
+
+    container_name: elasticsearch  
+    ulimits:
+      nofile:
+        soft: 65536
+        hard: 65536
+      memlock:
+        soft: -1
+        hard: -1
+
+    networks:
+      - elastic-net
+
+  kibana:
+    build:
+      context: kibana/
+      args:
+        ELK_VERSION: $ELK_VERSION #pass this variable to dockerfile
+    container_name: kibana    
+    volumes:
+      - ./kibana/config/kibana.yml:/usr/share/kibana/config/kibana.yml:ro
+    ports:
+      - "5601:5601"
+    networks:
+      - elastic-net
+    depends_on:
+      - elasticsearch
+    environment:
+      - KIBANA_PASSWORD=LAHSYNwP0isEFvBmP2kF
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+
+  python_app:
+    build:
+      context: python_app/
+      args:
+        PYTHON_VERSION: $PYTHON_VERSION #pass this variable to dockerfile
+    container_name: python_app    
+    volumes:
+      - ./python_app:/app:ro
+    networks:
+      - elastic-net
+    environment:
+      - ELASTICSEARCH_URL=http://elasticsearch:9200
+
+  # filebeat:
+  #   depends_on:
+  #     - "logstash"
+  #   #image: test/filebeat:v1
+  #   image: docker.elastic.co/beats/filebeat:6.6.2
+  #   container_name: filebeat
+  #   volumes:
+  #     - "./filebeat.yml:/usr/share/filebeat/filebeat.yml:ro"
+  #     - "/home/apalya/workspace/python/dashboard_api/var/logs/nginx:/usr/share/filebeat/nginx:ro"
+  #     - "/var/lib/docker/containers:/usr/share/filebeat/dockerlogs:ro"
+  #     - "/var/run/docker.sock:/var/run/docker.sock"
+  #   networks:
+  #     - elastic-net
+
+volumes:
+  elastic-data:
+
+networks:
+  elastic-net:

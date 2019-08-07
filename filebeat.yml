@@ -1,0 +1,31 @@
+filebeat.prospectors:
+- type: log
+  json.keys_under_root: true
+# Json key name, which value contains a sub JSON document produced by our application Console Appender  
+  json.message_key: log
+  enabled: true
+  encoding: utf-8
+  document_type: docker
+  paths:
+# Location of all our Docker log files (mapped volume in docker-compose.yml)  
+    - '/usr/share/filebeat/dockerlogs/*/*.log'
+    - '/usr/share/filebeat/nginx/*/*.log'
+
+#setup.template.name: "filebeat-"
+#setup.template.pattern: "filebeat-*"
+#setup.dashboards.enabled: true
+  
+output.elasticsearch:
+  hosts: ["http://localhost:9200"]
+  #index: "filebeat-%{[beat.version]}-%{+yyyy.MM.dd}"
+
+setup.kibana:
+  host: "http://localhost:5601"
+
+logging.level: info
+logging.to_files: true
+logging.files:
+  path: /var/log/filebeat
+  name: filebeat
+  keepfiles: 7
+  permissions: 0644

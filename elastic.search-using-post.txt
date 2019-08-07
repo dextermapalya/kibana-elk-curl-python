@@ -1,0 +1,39 @@
+
+curl -H "Content-Type: application/json" -X POST http://192.168.60.57:9200/sample/employee/_count -d '
+{  
+   "query":{  
+      "bool":{  
+         "must":[  
+            {  
+               "match_all":{  
+
+               }
+            },
+            {  
+               "range":{  
+                  "experienceInYears":{  
+                     "gte":1,
+                     "lt":4
+                  }
+               }
+            }
+         ],
+         "filter":[  
+
+         ],
+         "should":[  
+
+         ],
+         "must_not":[  
+            {  
+               "match_phrase":{  
+                  "name":{  
+                     "query":"Fool"
+                  }
+               }
+            }
+         ]
+      }
+   }
+}'
+
